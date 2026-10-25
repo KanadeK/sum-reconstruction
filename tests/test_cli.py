@@ -1,4 +1,5 @@
 import json
+import random
 import subprocess
 import sys
 import tempfile
@@ -20,6 +21,34 @@ def run(*args, data=None):
 
 
 class CliTests(unittest.TestCase):
+    def test_large_valid_certificate_roundtrip(self):
+        rng = random.Random(33331)
+        cells = [f"x{i}" for i in range(64)]
+        matrix = [[999983 if i == j else rng.randint(1, 997) for j in range(64)] for i in range(64)]
+        data = {
+            "version": 1,
+            "cells": cells,
+            "releases": [
+                {
+                    "id": f"r{i}",
+                    "terms": dict(zip(cells, row, strict=True)),
+                    "total": sum(a * j for j, a in enumerate(row)),
+                }
+                for i, row in enumerate(matrix)
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "dense.json"
+            output = Path(tmp) / "dense-report.json"
+            source.write_text(json.dumps(data), encoding="utf-8")
+            self.assertLess(source.stat().st_size, 2 * 1024 * 1024)
+            result = run("audit", source, "-o", output)
+            self.assertEqual(result.returncode, 1, result.stderr)
+            self.assertGreater(output.stat().st_size, 2 * 1024 * 1024)
+            result = run("verify", source, output)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(json.loads(result.stdout)["checked"], 64)
+
     def test_end_to_end_new_file_audit_and_verify(self):
         source = ROOT / "examples/overlap.json"
         before = source.read_bytes()
@@ -79,7 +108,7 @@ class CliTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
 
     def test_help_and_version(self):
-        self.assertEqual(run("--version").stdout.strip(), "0.1.0")
+        self.assertEqual(run("--version").stdout.strip(), "0.1.1")
         self.assertEqual(run("--help").returncode, 0)
 
 

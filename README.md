@@ -64,6 +64,8 @@ An inconsistent system returns a contradiction certificate (a combination with z
 
 `verify` recomputes each supplied identity directly from the original equations; it does not run row reduction. It verifies positive certificates only, **not completeness, rank metadata or global consistency**. A report with no positive certificates cannot be verified by this command. Re-run `audit` to check the whole system.
 
+Equation inputs are limited to 2 MiB; certificate reports accepted by `verify` have a separate 8 MiB limit because exact rational witnesses can be much larger than their input. Version 0.1.1 fixes the initial release's overly small report-reading limit. A dense 64-cell report roundtrip is covered by regression tests.
+
 ## Method and boundaries
 
 The engine performs Gaussian elimination using Python's exact `Fraction` arithmetic and tracks each row operation on an identity matrix. A protected cell is uniquely determined when a reduced row has coefficient 1 for that cell and 0 for every other cell. The tracked row is its witness in terms of the original releases. There are no floating-point tolerances.

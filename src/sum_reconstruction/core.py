@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from fractions import Fraction
 
 MAX_BYTES = 2 * 1024 * 1024
+MAX_REPORT_BYTES = 8 * 1024 * 1024
 MAX_CELLS = 64
 MAX_RELEASES = 128
 MAX_TERMS = 4096
@@ -45,10 +46,10 @@ def _constant(_value):
     raise InputError("non-finite JSON number")
 
 
-def load_json(data: bytes):
+def load_json(data: bytes, *, max_bytes: int = MAX_BYTES):
     """Load UTF-8 JSON without losing duplicate-member evidence."""
-    if len(data) > MAX_BYTES:
-        raise InputError("input exceeds 2 MiB")
+    if len(data) > max_bytes:
+        raise InputError("input exceeds configured byte limit")
     depth = 0
     quoted = escaped = False
     for byte in data:

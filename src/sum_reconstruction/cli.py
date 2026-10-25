@@ -6,16 +6,24 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .core import MAX_BYTES, InputError, audit, load_json, parse_problem, verify_report
+from .core import (
+    MAX_BYTES,
+    MAX_REPORT_BYTES,
+    InputError,
+    audit,
+    load_json,
+    parse_problem,
+    verify_report,
+)
 
 
-def _read(name):
+def _read(name, max_bytes=MAX_BYTES):
     if name == "-":
-        data = sys.stdin.buffer.read(MAX_BYTES + 1)
+        data = sys.stdin.buffer.read(max_bytes + 1)
     else:
         with Path(name).open("rb") as handle:
-            data = handle.read(MAX_BYTES + 1)
-    return load_json(data)
+            data = handle.read(max_bytes + 1)
+    return load_json(data, max_bytes=max_bytes)
 
 
 def main(argv=None):
@@ -41,7 +49,7 @@ def main(argv=None):
             raise InputError("only one input may use stdin")
         problem = parse_problem(_read(args.input))
         if args.command == "verify":
-            checked = verify_report(problem, _read(args.report))
+            checked = verify_report(problem, _read(args.report, MAX_REPORT_BYTES))
             result = {"status": "certificates-valid", "checked": checked}
             code = 0
         else:
