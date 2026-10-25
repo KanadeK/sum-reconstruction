@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "cells": ["a", "b", "c"],
+  "releases": [
+    {"id": "first", "terms": {"a": 1, "b": 1}, "total": 7},
+    {"id": "second", "terms": {"b": 1, "c": 1}, "total": 9}
+  ]
+}
